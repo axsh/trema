@@ -21,8 +21,8 @@ $LOAD_PATH.unshift File.expand_path( File.join File.dirname( __FILE__ ), "ruby" 
 
 require "paper_house"
 require "rake/clean"
-#require "rspec/core"
-#require "rspec/core/rake_task"
+require "rspec/core"
+require "rspec/core/rake_task"
 require "trema/dsl/parser"
 require "trema/executables"
 require "trema/path"
@@ -74,7 +74,7 @@ end
 desc "Build Trema Ruby library."
 task :libruby => :libtrema
 
-PaperHouse::CExtensionTask.new :libruby do | task |
+PaperHouse::RubyExtensionTask.new :libruby do | task |
   task.library_name = "trema"
   task.target_directory = Trema.ruby
   task.sources = [
