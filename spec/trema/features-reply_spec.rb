@@ -15,74 +15,99 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-require File.join( File.dirname( __FILE__ ), "..", "spec_helper" )
-require "trema"
-
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'trema'
 
 module Trema
-  describe FeaturesReply, ".new" do
-    it { expect { subject }.to raise_error( ArgumentError ) }
+  describe FeaturesReply, '.new' do
+    it { expect { subject }.to raise_error(ArgumentError) }
   end
 
-
-  describe FeaturesReply, ".new(options...)" do
-    subject {
+  describe FeaturesReply, '.new(options...)' do
+    subject do
       valid_options = {
-        :datapath_id => 123,
-        :transaction_id => 1234,
-        :n_buffers => 256,
-        :n_tables => 2,
-        :capabilities => 135,
-        :actions => 2047,
-        :ports => [ "port #0", "port #1", "port #2" ]
+        datapath_id: 123,
+        transaction_id: 1234,
+        n_buffers: 256,
+        n_tables: 2,
+        capabilities: 135,
+        actions: 2047,
+        ports: ['port #0', 'port #1', 'port #2']
       }
-      FeaturesReply.new( valid_options )
-    }
+      FeaturesReply.new(valid_options)
+    end
 
-    its( :datapath_id ) { should == 123 }
-    its( :transaction_id ) { should == 1234 }
-    its( :xid ) { should == 1234 }
-    its( :n_buffers ) { should == 256 }
-    its( :n_tables ) { should == 2 }
-    its( :capabilities ) { should == 135 }
-    its( :actions ) { should == 2047 }
-    its( :ports ) { subject.size.should == 3 }
+    describe '#datapath_id' do
+      subject { super().datapath_id }
+      it { is_expected.to eq(123) }
+    end
+
+    describe '#transaction_id' do
+      subject { super().transaction_id }
+      it { is_expected.to eq(1234) }
+    end
+
+    describe '#xid' do
+      subject { super().xid }
+      it { is_expected.to eq(1234) }
+    end
+
+    describe '#n_buffers' do
+      subject { super().n_buffers }
+      it { is_expected.to eq(256) }
+    end
+
+    describe '#n_tables' do
+      subject { super().n_tables }
+      it { is_expected.to eq(2) }
+    end
+
+    describe '#capabilities' do
+      subject { super().capabilities }
+      it { is_expected.to eq(135) }
+    end
+
+    describe '#actions' do
+      subject { super().actions }
+      it { is_expected.to eq(2047) }
+    end
+
+    describe '#ports' do
+      subject { super().ports }
+      it { subject.size.should == 3 }
+    end
   end
 
-
-  describe FeaturesReply, ".new(options...) (No :datapath_id)" do
-    subject {
-      FeaturesReply.new( {
+  describe FeaturesReply, '.new(options...) (No :datapath_id)' do
+    subject do
+      FeaturesReply.new(
         # :datapath_id => 123,
-        :transaction_id => 1234,
-        :n_buffers => 256,
-        :n_tables => 2,
-        :capabilities => 135,
-        :actions => 2047,
-        :ports => [ "port #0", "port #1", "port #2" ]
-      } )
-    }
-    it { expect { subject }.to raise_error( ArgumentError, ":datapath_id is a mandatory option" ) }
+        transaction_id: 1234,
+        n_buffers: 256,
+        n_tables: 2,
+        capabilities: 135,
+        actions: 2047,
+        ports: ['port #0', 'port #1', 'port #2']
+       )
+    end
+    it { expect { subject }.to raise_error(ArgumentError, ':datapath_id is a mandatory option') }
   end
 
-
-  describe FeaturesReply, ".new(options...) (No :transaction_id)" do
-    subject {
-      FeaturesReply.new( {
-        :datapath_id => 123,
+  describe FeaturesReply, '.new(options...) (No :transaction_id)' do
+    subject do
+      FeaturesReply.new(
+        datapath_id: 123,
         # :transaction_id => 1234,
-        :n_buffers => 256,
-        :n_tables => 2,
-        :capabilities => 135,
-        :actions => 2047,
-        :ports => [ "port #0", "port #1", "port #2" ]
-      } )
-    }
-    it { expect { subject }.to raise_error( ArgumentError, ":transaction_id is a mandatory option" ) }
+        n_buffers: 256,
+        n_tables: 2,
+        capabilities: 135,
+        actions: 2047,
+        ports: ['port #0', 'port #1', 'port #2']
+       )
+    end
+    it { expect { subject }.to raise_error(ArgumentError, ':transaction_id is a mandatory option') }
   end
 end
-
 
 ### Local variables:
 ### mode: Ruby

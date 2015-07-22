@@ -15,15 +15,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-require "trema/app"
-require "trema/host"
-require "trema/link"
-require "trema/openflow-switch"
-require "trema/packetin-filter"
-require "trema/switch-manager"
-require "trema/trema-switch"
-
+require 'trema/app'
+require 'trema/host'
+require 'trema/link'
+require 'trema/openflow-switch'
+require 'trema/packetin-filter'
+require 'trema/switch-manager'
+require 'trema/trema-switch'
 
 module Trema
   module DSL
@@ -95,15 +93,12 @@ module Trema
       #
       attr_reader :switches
 
-
       attr_reader :netnss
-
 
       #
       # holds all instances of configured trema switches
       #
       attr_reader :trema_switches
-
 
       #
       # Creates a new Trema configuration
@@ -125,7 +120,6 @@ module Trema
         @netnss = Trema::Netns.clear
       end
 
-
       #
       # Returns {PacketinFilter} configuration
       #
@@ -137,7 +131,6 @@ module Trema
       def packetin_filter
         @packetin_filter.values.last
       end
-
 
       #
       # Returns {SwitchManager} configuration
@@ -153,7 +146,6 @@ module Trema
     end
   end
 end
-
 
 ### Local variables:
 ### mode: Ruby

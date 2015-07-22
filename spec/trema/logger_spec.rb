@@ -17,29 +17,26 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-require File.join( File.dirname( __FILE__ ), "..", "spec_helper" )
-require "trema"
-
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'trema'
 
 module Trema
   describe Logger do
-    subject {
+    subject do
       class LoggingObject
         include Trema::Logger
       end
       LoggingObject.new
-    }
+    end
 
-    it { should respond_to :critical }
-    it { should respond_to :error }
-    it { should respond_to :warn }
-    it { should respond_to :notice }
-    it { should respond_to :info }
-    it { should respond_to :debug }
+    it { is_expected.to respond_to :critical }
+    it { is_expected.to respond_to :error }
+    it { is_expected.to respond_to :warn }
+    it { is_expected.to respond_to :notice }
+    it { is_expected.to respond_to :info }
+    it { is_expected.to respond_to :debug }
   end
 end
-
 
 ### Local variables:
 ### mode: Ruby

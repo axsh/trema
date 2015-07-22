@@ -345,7 +345,7 @@ pack_icmpv4_code( VALUE self, VALUE actions, VALUE options ) {
 
 static VALUE
 pack_arp_op( VALUE self, VALUE actions, VALUE options ) {
-  VALUE r_arp_op = HASH_REF( options, arp_op );
+  VALUE r_arp_op = HASH_REF( options, arp_opcode );
   if ( rb_obj_is_kind_of( actions, basic_action_eval ) ) {
     append_action_set_field_arp_op( openflow_actions_ptr( actions ), ( const uint16_t ) NUM2UINT( r_arp_op ) );
   }

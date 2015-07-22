@@ -17,228 +17,213 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-require File.join( File.dirname( __FILE__ ), "..", "..", "spec_helper" )
-require "trema/dsl/runner"
-require "trema/ordered-hash"
-
+require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require 'trema/dsl/runner'
+require 'trema/ordered-hash'
 
 module Trema
   module DSL
     describe Runner do
       before :each do
-        ::Process.stub!( :fork ).and_yield
-        ::Process.stub!( :waitpid )
-        @switch_manager = mock( "switch manager", :run! => nil )
-        SwitchManager.stub!( :new ).and_return( @switch_manager )
+        allow(::Process).to receive(:fork).and_yield
+        allow(::Process).to receive(:waitpid)
+        @switch_manager = double('switch manager', :run! => nil)
+        allow(SwitchManager).to receive(:new).and_return(@switch_manager)
       end
 
+      context 'when running' do
+        it 'should run switch_manager' do
+          expect(@switch_manager).to receive(:run!).once
 
-      context "when running" do
-        it "should run switch_manager" do
-          @switch_manager.should_receive( :run! ).once
-
-          context = mock(
-            "context",
-            :port => 6633,
-            :unix_path => nil,
-            :tremashark => nil,
-            :switch_manager => nil,
-            :packetin_filter => nil,
-            :links => {},
-            :hosts => {},
-            :switches => {},
-            :apps => {}
+          context = double(
+            'context',
+            port: 6653,
+            tremashark: nil,
+            switch_manager: nil,
+            packetin_filter: nil,
+            links: {},
+            hosts: {},
+            switches: {},
+            apps: {}
           )
 
-          Runner.new( context ).run
+          Runner.new(context).run
         end
 
+        it 'should run packetin_filter' do
+          packetin_filter = double
+          expect(packetin_filter).to receive(:run!).once
 
-        it "should run packetin_filter" do
-          packetin_filter = mock
-          packetin_filter.should_receive( :run! ).once
-
-          context = mock(
-            "context",
-            :tremashark => nil,
-            :switch_manager => mock( "switch_manager", :run! => nil ),
-            :packetin_filter => packetin_filter,
-            :links => {},
-            :hosts => {},
-            :switches => {},
-            :apps => {},
-            :port => 6633,
-            :unix_path => nil
+          context = double(
+            'context',
+            tremashark: nil,
+            switch_manager: double('switch_manager', :run! => nil),
+            packetin_filter: packetin_filter,
+            links: {},
+            hosts: {},
+            switches: {},
+            apps: {},
+            port: 6653
           )
 
-          Runner.new( context ).run
+          Runner.new(context).run
         end
 
+        it 'should create links' do
+          link0 = double('link0')
+          expect(link0).to receive(:delete!).once
+          expect(link0).to receive(:enable!).once
 
-        it "should create links" do
-          link0 = mock( "link0" )
-          link0.should_receive( :delete! ).once
-          link0.should_receive( :enable! ).once
+          link1 = double('link1')
+          expect(link1).to receive(:delete!).once
+          expect(link1).to receive(:enable!).once
 
-          link1 = mock( "link1" )
-          link1.should_receive( :delete! ).once
-          link1.should_receive( :enable! ).once
+          link2 = double('link2')
+          expect(link2).to receive(:delete!).once
+          expect(link2).to receive(:enable!).once
 
-          link2 = mock( "link2" )
-          link2.should_receive( :delete! ).once
-          link2.should_receive( :enable! ).once
-
-          context = mock(
-            "context",
-            :tremashark => nil,
-            :switch_manager => mock( "switch manager", :run! => nil ),
-            :packetin_filter => nil,
-            :links => { "link0" => link0, "link1" => link1, "link2" => link2 },
-            :hosts => {},
-            :switches => {},
-            :apps => {},
-            :port => 6633,
-            :unix_path => nil
+          context = double(
+            'context',
+            tremashark: nil,
+            switch_manager: double('switch manager', :run! => nil),
+            packetin_filter: nil,
+            links: { 'link0' => link0, 'link1' => link1, 'link2' => link2 },
+            hosts: {},
+            switches: {},
+            apps: {},
+            port: 6653
           )
 
-          Runner.new( context ).run
+          Runner.new(context).run
         end
 
+        it 'should run vhosts' do
+          host0 = double('host0')
+          host1 = double('host1')
+          host2 = double('host2')
 
-        it "should run vhosts" do
-          host0 = mock( "host0" )
-          host1 = mock( "host1" )
-          host2 = mock( "host2" )
+          expect(host0).to receive(:run!).once
+          expect(host0).to receive(:add_arp_entry).with { | arg |
+            expect(arg.size).to eq(2)
+            expect(arg).to include(host1)
+            expect(arg).to include(host2)
+          }
 
-          host0.should_receive( :run! ).once
-          host0.should_receive( :add_arp_entry ).with do | arg |
-            arg.size.should == 2
-            arg.should include( host1 )
-            arg.should include( host2 )
-          end
+          expect(host1).to receive(:run!).once
+          expect(host1).to receive(:add_arp_entry).with { | arg |
+            expect(arg.size).to eq(2)
+            expect(arg).to include(host0)
+            expect(arg).to include(host2)
+          }
 
-          host1.should_receive( :run! ).once
-          host1.should_receive( :add_arp_entry ).with do | arg |
-            arg.size.should == 2
-            arg.should include( host0 )
-            arg.should include( host2 )
-          end
+          expect(host2).to receive(:run!).once
+          expect(host2).to receive(:add_arp_entry).with { | arg |
+            expect(arg.size).to eq(2)
+            expect(arg).to include(host0)
+            expect(arg).to include(host1)
+          }
 
-          host2.should_receive( :run! ).once
-          host2.should_receive( :add_arp_entry ).with do | arg |
-            arg.size.should == 2
-            arg.should include( host0 )
-            arg.should include( host1 )
-          end
-
-          context = mock(
-            "context",
-            :tremashark => nil,
-            :switch_manager => mock( "switch manager", :run! => nil ),
-            :packetin_filter => nil,
-            :links => {},
-            :hosts => { "host0" => host0, "host1" => host1, "host2" => host2 },
-            :switches => {},
-            :apps => {},
-            :port => 6633,
-            :unix_path => nil
+          context = double(
+            'context',
+            tremashark: nil,
+            switch_manager: double('switch manager', :run! => nil),
+            packetin_filter: nil,
+            links: {},
+            hosts: { 'host0' => host0, 'host1' => host1, 'host2' => host2 },
+            switches: {},
+            apps: {},
+            port: 6653
           )
 
-          Runner.new( context ).run
+          Runner.new(context).run
         end
 
+        it 'should run switches' do
+          switch0 = double('switch0')
+          expect(switch0).to receive(:run!).once
 
-        it "should run switches" do
-          switch0 = mock( "switch0" )
-          switch0.should_receive( :run! ).once
+          switch1 = double('switch1')
+          expect(switch1).to receive(:run!).once
 
-          switch1 = mock( "switch1" )
-          switch1.should_receive( :run! ).once
+          switch2 = double('switch2')
+          expect(switch2).to receive(:run!).once
 
-          switch2 = mock( "switch2" )
-          switch2.should_receive( :run! ).once
-
-          context = mock(
-            "context",
-            :tremashark => nil,
-            :switch_manager => mock( "switch manager", :run! => nil ),
-            :packetin_filter => nil,
-            :links => {},
-            :hosts => {},
-            :switches => { "switch0" => switch0, "switch1" => switch1, "switch 2" => switch2 },
-            :apps => {},
-            :port => 6633,
-            :unix_path => nil
+          context = double(
+            'context',
+            tremashark: nil,
+            switch_manager: double('switch manager', :run! => nil),
+            packetin_filter: nil,
+            links: {},
+            hosts: {},
+            switches: { 'switch0' => switch0, 'switch1' => switch1, 'switch 2' => switch2 },
+            apps: {},
+            port: 6653
           )
 
-          Runner.new( context ).run
+          Runner.new(context).run
         end
 
-
-        it "should run apps" do
+        it 'should run apps' do
           apps = OrderedHash.new
 
-          app0 = mock( "app0", :name => "app0" )
-          app0.should_receive( :daemonize! ).once.ordered
-          apps[ "app0" ] = app0
+          app0 = double('app0', name: 'app0')
+          expect(app0).to receive(:daemonize!).once.ordered
+          apps['app0'] = app0
 
-          app1 = mock( "app1", :name => "app1" )
-          app1.should_receive( :daemonize! ).once.ordered
-          apps[ "app1" ] = app1
+          app1 = double('app1', name: 'app1')
+          expect(app1).to receive(:daemonize!).once.ordered
+          apps['app1'] = app1
 
-          app2 = mock( "app2", :name => "app2" )
-          app2.should_receive( :run! ).once.ordered
-          apps[ "app2" ] = app2
+          app2 = double('app2', name: 'app2')
+          expect(app2).to receive(:run!).once.ordered
+          apps['app2'] = app2
 
-          context = mock(
-            "context",
-            :tremashark => nil,
-            :switch_manager => mock( "switch manager", :run! => nil, :rule => {} ),
-            :packetin_filter => nil,
-            :links => {},
-            :hosts => {},
-            :switches => {},
-            :apps => apps
+          context = double(
+            'context',
+            tremashark: nil,
+            switch_manager: double('switch manager', :run! => nil, :rule => {}),
+            packetin_filter: nil,
+            links: {},
+            hosts: {},
+            switches: {},
+            apps: apps
           )
 
-          Runner.new( context ).run
+          Runner.new(context).run
         end
 
-
-        it "should daemonize apps" do
+        it 'should daemonize apps' do
           apps = OrderedHash.new
 
-          app0 = mock( "app0" )
-          app0.should_receive( :daemonize! ).once.ordered
-          apps[ "app0" ] = app0
+          app0 = double('app0')
+          expect(app0).to receive(:daemonize!).once.ordered
+          apps['app0'] = app0
 
-          app1 = mock( "app1" )
-          app1.should_receive( :daemonize! ).once.ordered
-          apps[ "app1" ] = app1
+          app1 = double('app1')
+          expect(app1).to receive(:daemonize!).once.ordered
+          apps['app1'] = app1
 
-          app2 = mock( "app2", :name => "App2" )
-          app2.should_receive( :daemonize! ).once.ordered
-          apps[ "app2" ] = app2
+          app2 = double('app2', name: 'App2')
+          expect(app2).to receive(:daemonize!).once.ordered
+          apps['app2'] = app2
 
-          context = mock(
-            "context",
-            :tremashark => nil,
-            :switch_manager => mock( "switch manager", :run! => nil, :rule => {} ),
-            :packetin_filter => nil,
-            :links => {},
-            :hosts => {},
-            :switches => {},
-            :apps => apps
+          context = double(
+            'context',
+            tremashark: nil,
+            switch_manager: double('switch manager', :run! => nil, :rule => {}),
+            packetin_filter: nil,
+            links: {},
+            hosts: {},
+            switches: {},
+            apps: apps
           )
 
-          Runner.new( context ).daemonize
+          Runner.new(context).daemonize
         end
       end
     end
   end
 end
-
 
 ### Local variables:
 ### mode: Ruby

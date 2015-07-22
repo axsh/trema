@@ -374,7 +374,7 @@ _assign_match( match *match, const oxm_match_header *hdr ) {
     break;
     case OXM_OF_ARP_OP: {
       const uint16_t *value = ( const uint16_t * ) ( ( const char * ) hdr + sizeof ( oxm_match_header ) );
-      MATCH_ATTR_SET( arp_op, *value )
+      MATCH_ATTR_SET( arp_opcode, *value )
     }
     break;
     case OXM_OF_ARP_SPA:
@@ -454,8 +454,8 @@ _assign_match( match *match, const oxm_match_header *hdr ) {
     }
     break;
     default:
-      error( "Undefined oxm type ( header = %#x, type = %#x, has_mask = %u, length = %u ). ",
-              *hdr, OXM_TYPE( *hdr ), OXM_HASMASK( *hdr ), OXM_LENGTH( *hdr ) );
+      error( "Undefined oxm type ( header = %#x, class = %#x, field = %#x, type = %#x, has_mask = %u, length = %u ). ",
+              *hdr, OXM_TYPE( *hdr ), OXM_CLASS( *hdr ), OXM_FIELD( *hdr ), OXM_HASMASK( *hdr ), OXM_LENGTH( *hdr ) );
     break;
   }
 }
@@ -483,8 +483,10 @@ _construct_oxm( oxm_matches *oxm_match, match *match ) {
   APPEND_OXM_MATCH( vlan_pcp )
   APPEND_OXM_MATCH( icmpv4_type )
   APPEND_OXM_MATCH( icmpv6_type )
-  APPEND_OXM_MATCH( arp_op )
-  uint8_t eth_addr[ ETH_ADDRLEN ];
+  if ( match->arp_opcode.valid ) {
+		append_oxm_match_arp_op( oxm_match, match->arp_opcode.value );
+	}
+	uint8_t eth_addr[ ETH_ADDRLEN ];
   uint8_t eth_addr_mask[ ETH_ADDRLEN ];
   if ( match->arp_sha[ 0 ].valid ) {
     byte_copy_match8( eth_addr, eth_addr_mask, &match->arp_sha[ 0 ], ETH_ADDRLEN );

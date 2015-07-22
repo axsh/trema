@@ -488,7 +488,7 @@ set_vlan_pcp( buffer *frame, uint8_t value ) {
 }
 
 
-static bool
+bool
 set_nw_dscp( buffer *frame, uint8_t value ) {
   assert( frame != NULL );
 
@@ -1783,8 +1783,8 @@ execute_action_set_field( buffer *frame, action *set_field ) {
     }
   }
 
-  if ( match->arp_op.valid ) {
-    if ( !set_arp_op( frame, match->arp_op.value ) ) {
+  if ( match->arp_opcode.valid ) {
+    if ( !set_arp_op( frame, match->arp_opcode.value ) ) {
       return false;
     }
   }
@@ -2085,7 +2085,7 @@ execute_group_select( buffer *frame, bucket_list *buckets ) {
         continue;
       }
       candidates_weight_total += b->weight;
-      append_to_tail( &candidates, bucket_element );
+      append_to_tail( &candidates, b );
     }
     bucket_element = bucket_element->next;
   }
@@ -2103,28 +2103,24 @@ execute_group_select( buffer *frame, bucket_list *buckets ) {
 #endif
 
   uint32_t candidate_index = 0;
-  list_element *target = candidates;
-  for ( uint32_t i = 0; target != NULL && i < length_of_candidates; i++ ) {
-    bucket *b = target->data;
+  bucket *selected_bucket = NULL;
+  for ( list_element *e = candidates; e != NULL; e = e->next ) {
+    bucket *b = e->data;
     if ( candidate_weight < b->weight ) {
+      selected_bucket = b;
       break;
     }
     candidate_index++;
     candidate_weight -= b->weight;
-    target = target->next;
   }
   debug( "execute group select. bucket=%u(/%u)", candidate_index, length_of_candidates );
 
-  if ( target != NULL ) {
-    bucket_element = target->data;
-    bucket *b = bucket_element->data;
-    if ( b != NULL ) {
-      b->packet_count++;
-      b->byte_count += frame->length;
-      if ( execute_action_list( b->actions, frame ) != OFDPE_SUCCESS ) {
-        delete_list( candidates );
-        return false;
-      }
+  if ( selected_bucket != NULL ) {
+    selected_bucket->packet_count++;
+    selected_bucket->byte_count += frame->length;
+    if ( execute_action_list( selected_bucket->actions, frame ) != OFDPE_SUCCESS ) {
+      delete_list( candidates );
+      return false;
     }
   }
 
@@ -2222,11 +2218,10 @@ execute_action_output( buffer *frame, action *output ) {
 
   bool ret = true;
 
-  if ( output->port == OFPP_CONTROLLER ) {
-    packet_info *info = ( packet_info * ) frame->user_data;
-    uint32_t in_port = info->eth_in_port;
-    switch_port *port = lookup_switch_port( in_port );
+  packet_info *info = ( packet_info * ) frame->user_data;
+  uint32_t in_port = info->eth_in_port;
 
+  if ( output->port == OFPP_CONTROLLER || ( output->port == OFPP_IN_PORT && in_port == OFPP_CONTROLLER )) {
     match *match = NULL;
     uint8_t table_id = 0;
     uint64_t cookie = 0;
@@ -2234,7 +2229,8 @@ execute_action_output( buffer *frame, action *output ) {
       match = duplicate_match( output->entry->match );
       cookie = output->entry->cookie;
       table_id = output->entry->table_id;
-    } else {
+    }
+    else {
       match = create_match();
     }
     match->in_port.value = info->eth_in_port;
@@ -2251,7 +2247,9 @@ execute_action_output( buffer *frame, action *output ) {
       match->tunnel_id.value = info->tunnel_id;
       match->tunnel_id.valid = true;
     }
+
     if ( output->entry != NULL && output->entry->table_miss ) {
+      switch_port *port = lookup_switch_port( in_port );
       if ( port == NULL || ( port->config & OFPPC_NO_PACKET_IN ) == 0 ){
         notify_packet_in( OFPR_NO_MATCH, table_id, cookie, match, frame, MISS_SEND_LEN );
       }
@@ -2262,23 +2260,19 @@ execute_action_output( buffer *frame, action *output ) {
     delete_match( match );
   }
   else if ( output->port == OFPP_TABLE ) {
-    packet_info *info = ( packet_info * ) frame->user_data;
-    uint32_t in_port = info->eth_in_port;
-
-    // port is valid standard switch port or OFPP_CONTROLLER
-    switch_port *port = lookup_switch_port( in_port );
-    bool free_port = false;
-    if ( port == NULL ){
-      port = ( switch_port * ) xmalloc( sizeof( switch_port ) );
-      memset( port, 0, sizeof( switch_port ) );
-      port->port_no = OFPP_CONTROLLER;
-      free_port = true;
+    switch_port *port = NULL, controller = { .port_no = OFPP_CONTROLLER };
+    if ( in_port == OFPP_CONTROLLER ) {
+      port = &controller;
     }
-
-    handle_received_frame( port, frame );
-
-    if ( free_port ) {
-      xfree( port );
+    else {
+      port = lookup_switch_port( in_port );
+    }
+    if ( port != NULL ) {
+      handle_received_frame( port, frame );
+    }
+    else {
+      // in_port must be set to either valid standard switch port or OFPP_CONTROLLER (7.3.7)
+      ret = OFDPE_FAILED;
     }
   }
   else {

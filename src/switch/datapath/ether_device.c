@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "ether_device.h"
+#include "mutex.h"
 
 
 static const size_t MAX_L2_HEADER_LENGTH = 32;
@@ -419,7 +420,12 @@ receive_frame( int fd, void *user_data ) {
       length += ( ssize_t ) sizeof( vlantag_header_t );
       memmove( head, head + sizeof( vlantag_header_t ), ETH_ADDRLEN * 2 );
       uint16_t *eth_type = ( uint16_t * ) ( head + ETH_ADDRLEN * 2 );
-      *eth_type = htons( ETH_ETHTYPE_TPID );
+      *eth_type = htons( ETH_P_8021Q );
+#ifdef TP_STATUS_VLAN_TPID_VALID
+      if ( ( auxdata->tp_vlan_tpid != 0 ) && ( auxdata->tp_status & TP_STATUS_VLAN_TPID_VALID ) ) {
+        *eth_type = htons( auxdata->tp_vlan_tpid );
+      }
+#endif
       uint16_t *tci = ++eth_type;
       *tci = htons( auxdata->tp_vlan_tci );
     }
@@ -560,13 +566,13 @@ create_ether_device( const char *name, const size_t max_send_queue, const size_t
     warn( "Failed to set immediate mode for %s.", name );
   }
   #endif // USE_PCAP_IMMEDIATE_MODE
-  if ( pcap_setnonblock( handle, 1, errbuf ) == -1 ) {
-    warn( "Failed to setnonblock %s ( %s ).", name, errbuf );
-  }
   if ( pcap_activate( handle ) < 0 ) {
     error( "Failed to activate %s.", name );
     pcap_close( handle );
     return NULL;
+  }
+  if ( pcap_setnonblock( handle, 1, errbuf ) == -1 ) {
+    warn( "Failed to setnonblock %s ( %s ).", name, errbuf );
   }
 
   int fd = pcap_get_selectable_fd( handle );

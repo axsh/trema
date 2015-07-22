@@ -17,18 +17,27 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-
-require File.join( File.dirname( __FILE__ ), "..", "spec_helper" )
-require "trema"
-
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'trema'
 
 describe Trema::PortStatus do
   subject { Trema::PortStatus }
-  its( :constants ) { should include "OFPPR_ADD" }
-  its( :constants ) { should include "OFPPR_DELETE" }
-  its( :constants ) { should include "OFPPR_MODIFY" }
-end
 
+  describe '#constants' do
+    subject { super().constants }
+    it { is_expected.to include 'OFPPR_ADD' }
+  end
+
+  describe '#constants' do
+    subject { super().constants }
+    it { is_expected.to include 'OFPPR_DELETE' }
+  end
+
+  describe '#constants' do
+    subject { super().constants }
+    it { is_expected.to include 'OFPPR_MODIFY' }
+  end
+end
 
 ### Local variables:
 ### mode: Ruby

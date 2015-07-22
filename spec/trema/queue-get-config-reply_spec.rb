@@ -17,47 +17,78 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'trema'
 
-require File.join( File.dirname( __FILE__ ), "..", "spec_helper" )
-require "trema"
-
-
-describe QueueGetConfigReply, ".new( VALID OPTIONS )" do
-  subject do 
+describe QueueGetConfigReply, '.new( VALID OPTIONS )' do
+  subject do
     for i in 1..2 do
-      pq = PacketQueue.new( :queue_id => i, :len => i * 64 )
-      mr = MinRateQueue.new( i, i * 64, 1024 * i, pq)
+      pq = PacketQueue.new(queue_id: i, len: i * 64)
+      mr = MinRateQueue.new(i, i * 64, 1024 * i, pq)
     end
-    QueueGetConfigReply.new( :datapath_id => 0xabc,
-      :transaction_id => 123,
-      :port => 1,
-      :queues => Queue.queues
+    QueueGetConfigReply.new(datapath_id: 0xabc,
+                            transaction_id: 123,
+                            port: 1,
+                            queues: Queue.queues
     )
   end
-  its( :queues ) { subject.length.should ==  2  }
-  its( :queues ) { subject[0].should be_an_instance_of PacketQueue }
-  its( :datapath_id ) { should == 0xabc }
-  its( :transaction_id ) { should == 123 }
-end
 
-
-describe PacketQueue, ".new( VALID OPTIONS )" do
-  subject { PacketQueue.new( :queue_id => 123, :len => 64 ) }
-  its( :queue_id ) { should == 123 }
-  its( :len ) { should == 64 }
-end
-
-
-describe MinRateQueue, ".new( VALID OPTIONS )" do
-  subject do
-    pq = PacketQueue.new( :queue_id => 123, :len => 64 )
-    MinRateQueue.new( 1, 64, 1024, pq )
+  describe '#queues' do
+    subject { super().queues }
+    it { subject.length.should ==  2  }
   end
-  its( :property ) { should == 1 }
-  its( :len ) { should == 64 }
-  its( :rate ) { should == 1024 }
+
+  describe '#queues' do
+    subject { super().queues }
+    it { subject[0].should be_an_instance_of PacketQueue }
+  end
+
+  describe '#datapath_id' do
+    subject { super().datapath_id }
+    it { is_expected.to eq(0xabc) }
+  end
+
+  describe '#transaction_id' do
+    subject { super().transaction_id }
+    it { is_expected.to eq(123) }
+  end
 end
 
+describe PacketQueue, '.new( VALID OPTIONS )' do
+  subject { PacketQueue.new(queue_id: 123, len: 64) }
+
+  describe '#queue_id' do
+    subject { super().queue_id }
+    it { is_expected.to eq(123) }
+  end
+
+  describe '#len' do
+    subject { super().len }
+    it { is_expected.to eq(64) }
+  end
+end
+
+describe MinRateQueue, '.new( VALID OPTIONS )' do
+  subject do
+    pq = PacketQueue.new(queue_id: 123, len: 64)
+    MinRateQueue.new(1, 64, 1024, pq)
+  end
+
+  describe '#property' do
+    subject { super().property }
+    it { is_expected.to eq(1) }
+  end
+
+  describe '#len' do
+    subject { super().len }
+    it { is_expected.to eq(64) }
+  end
+
+  describe '#rate' do
+    subject { super().rate }
+    it { is_expected.to eq(1024) }
+  end
+end
 
 ### Local variables:
 ### mode: Ruby

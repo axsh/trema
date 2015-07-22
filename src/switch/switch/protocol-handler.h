@@ -17,7 +17,7 @@
 
 
 #ifndef PROTOCOL_HANDLER_H
-#define PROOTOCOL_HANLDER_H
+#define PROTOCOL_HANDLER_H
 
 
 #ifdef __cplusplus
@@ -78,6 +78,14 @@ void ( *handle_group_mod )( const uint32_t transaction_id,
         const uint32_t group_id,
         const list_element *buckets,
         void *user_data );
+void ( *handle_meter_mod )( const uint32_t transaction_id,
+        const uint16_t command,
+        const uint16_t flags,
+        const uint32_t meter_id,
+        const list_element *bands,
+        void *user_data );
+
+
 void ( *handle_multipart_request )( uint32_t transaction_id,
         uint16_t type,
         uint16_t flags,
