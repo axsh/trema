@@ -17,18 +17,14 @@
 
 $LOAD_PATH.unshift File.expand_path(File.join File.dirname(__FILE__), 'ruby')
 
-$LOAD_PATH.unshift File.expand_path( File.join File.dirname( __FILE__ ), "ruby" )
-
-
-require "paper_house"
-require "rake/clean"
-# require "rspec/core"
-# require "rspec/core/rake_task"
-require "trema/dsl/parser"
-require "trema/executables"
-require "trema/path"
-require "trema/version"
-
+require 'paper_house'
+require 'rake/clean'
+require 'rspec/core'
+require 'rspec/core/rake_task'
+require 'trema/dsl/parser'
+require 'trema/executables'
+require 'trema/path'
+require 'trema/version'
 
 CLOBBER.include Trema.objects
 
