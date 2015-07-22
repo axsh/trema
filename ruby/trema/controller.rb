@@ -227,6 +227,15 @@ module Trema
     def name
       self.class.to_s.split('::').last
     end
+
+    #
+    # Disables the Trema exit handler.
+    #
+    # @return [Boolean]
+    #
+    def no_exit_handler
+      false
+    end
   end
 end
 

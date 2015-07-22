@@ -49,13 +49,20 @@ controller_init_trema( VALUE self ) {
   VALUE name = rb_funcall( self, rb_intern( "name" ), 0 );
   rb_gv_set( "$PROGRAM_NAME", name );
 
-  int argc = 4;
-  char **argv = xmalloc( sizeof ( char * ) * ( uint32_t ) ( argc + 1 ) );
+  VALUE no_exit_handler = rb_funcall( self, rb_intern( "no_exit_handler" ), 0 );
+
+  int argc = 3;
+  char **argv = xmalloc( sizeof ( char * ) * ( uint32_t ) ( argc + 2 ) );
   argv[ 0 ] = RSTRING_PTR( name );
   argv[ 1 ] = ( char * ) ( uintptr_t ) "--name";
   argv[ 2 ] = RSTRING_PTR( name );
-  argv[ 3 ] = ( char * ) ( uintptr_t ) "--no_exit_handler";
-  argv[ 4 ] = NULL;
+  argv[ 3 ] = NULL;
+
+  if ( RTEST( no_exit_handler ) ) {
+    argv[ argc++ ] = ( char * ) ( uintptr_t ) "--no_exit_handler";
+    argv[ argc ] = NULL;
+  }
+
   init_trema( &argc, &argv );
   xfree( argv );
 
