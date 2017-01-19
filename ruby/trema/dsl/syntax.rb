@@ -116,7 +116,7 @@ module Trema
         stanza.instance_eval( &block )
         Trema::App.new( stanza )
       end
-      deprecate :app => :run
+      # deprecate :app => :run
     end
   end
 end
