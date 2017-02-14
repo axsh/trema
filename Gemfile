@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 
 gem "gli", "~> 2.9.0"
-gem "paper_house", "~> 0.5.0"
+gem "paper_house", :git=>'https://github.com/rakshasa/paper-house.git', :branch=>'fix-arch-hdr'
 
 
 group :development do
