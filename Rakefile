@@ -45,7 +45,6 @@ CFLAGS = [
   "-Wcast-qual",
   "-Wcast-align",
   "-Wwrite-strings",
-  "-Wconversion",
   "-Wfloat-equal",
   "-Wpointer-arith"
 ]
